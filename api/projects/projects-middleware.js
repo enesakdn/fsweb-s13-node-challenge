@@ -3,19 +3,37 @@
 const projectModel = require("../projects/projects-model");
 
 async function validateId(req, res, next) {
-  const { id } = req.params;
   try {
+    const { id } = req.params;
     const Projects = await projectModel.get(id);
     if (Projects) {
-      res.status(200).json(Projects);
+      req.Projects = Projects;
+      req.id = id;
+      next();
     } else {
       res.status(404).json(null);
     }
-    req.Projects = Projects;
-    next();
   } catch (error) {
     next(error);
   }
 }
 
-module.exports = { validateId };
+async function validateProjects(req, res, next) {
+  const { name, description, completed } = req.body;
+
+  if (name && description) {
+    req.project = {
+      name: name,
+      description: description,
+      completed: completed,
+    };
+    next();
+  } else {
+    res
+      .status(400)
+      .json({ message: "Lütfen bir message ve description sağlayın" });
+    next();
+  }
+}
+
+module.exports = { validateId, validateProjects };

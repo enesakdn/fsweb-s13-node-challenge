@@ -23,67 +23,58 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/:id", middleware.validateId, async (req, res) => {
-  await ProjectModel.get(req.projects);
-});
-
-router.post("/", async (req, res, next) => {
+router.get("/:id", middleware.validateId, async (req, res, next) => {
   try {
-    const { name, description, completed } = req.body;
-    if (name && description) {
-      const newUser = await ProjectModel.insert({
-        name: name,
-        description: description,
-        completed: completed,
-      });
-      res.status(201).json(newUser);
-    } else {
-      res
-        .status(400)
-        .json("message:lütfen bir message ve description sağlayın");
-    }
+    res.status(200).json(req.Projects);
   } catch (error) {
     next(error);
   }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.post("/", middleware.validateProjects, async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { name, description, completed } = req.body;
-    if (name && description) {
-      const updateProject = await ProjectModel.update(id, {
-        name: name,
-        description: description,
-        completed: completed,
-      });
+    const newUser = await ProjectModel.insert(req.project);
+    res.status(201).json(newUser);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put(
+  "/:id",
+  middleware.validateId,
+  middleware.validateProjects,
+  async (req, res, next) => {
+    try {
+      const updateProject = await ProjectModel.update(req.id, req.project);
       res.status(201).json(updateProject);
-    } else {
-      res.status(400).json({ message: "dsfsdf" });
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
 
-router.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const remove = await ProjectModel.remove(id);
-    if (remove) {
-      res.json({ message: "Silme başarılı" });
-    } else {
-      res.status(404).json({ message: "cartcurt" });
+router.delete(
+  "/:id",
+
+  middleware.validateId,
+  async (req, res) => {
+    try {
+      const remove = await ProjectModel.remove(req.id);
+      if (remove) {
+        res.json({ message: "Silme başarılı" });
+      } else {
+        res.status(404).json({ message: "cartcurt" });
+      }
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
 
-router.get("/:id/actions", async (req, res, next) => {
-  const { id } = req.params;
+router.get("/:id/actions", middleware.validateId, async (req, res, next) => {
   try {
-    const bringmeAction = await ProjectModel.getProjectActions(id);
+    const bringmeAction = await ProjectModel.getProjectActions(req.id);
     res.json(bringmeAction);
   } catch (error) {
     next(error);
